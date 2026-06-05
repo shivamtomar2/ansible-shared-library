@@ -2,10 +2,12 @@ def call(Map config) {
 
     stage('Clone') {
 
+        deleteDir()
+
         git config.REPO_URL
     }
 
-    if(config.KEEP_APPROVAL_STAGE) {
+    if (config.KEEP_APPROVAL_STAGE) {
 
         stage('User Approval') {
 
@@ -21,9 +23,21 @@ def call(Map config) {
         sh """
         export PATH=/opt/homebrew/bin:\$PATH
 
+        echo "Current Workspace:"
+        pwd
+
+        echo "Workspace Files:"
+        ls -la
+
+        echo "Searching Playbook:"
+        find . -name deploy.yml
+
+        echo "Searching Inventory:"
+        find . -name prod
+
         ansible-playbook \
-        ${config.PLAYBOOK_NAME} \
-        -i ${config.INVENTORY_FILE}
+        playbooks/deploy.yml \
+        -i inventory/prod
         """
     }
 
