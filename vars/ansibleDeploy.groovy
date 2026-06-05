@@ -1,36 +1,32 @@
 def call(Map config) {
 
-```
-stage('Clone') {
+    stage('Clone') {
 
-    git config.REPO_URL
-}
-
-if(config.KEEP_APPROVAL_STAGE) {
-
-    stage('User Approval') {
-
-        input(
-            message: "Deploy to ${config.ENVIRONMENT} ?",
-            ok: "Proceed"
-        )
+        git config.REPO_URL
     }
-}
 
-stage('Playbook Execution') {
+    if(config.KEEP_APPROVAL_STAGE) {
 
-    sh """
-    ansible-playbook \
-    ${config.PLAYBOOK_NAME} \
-    -i ${config.INVENTORY_FILE}
-    """
-}
+        stage('User Approval') {
 
-stage('Notification') {
+            input(
+                message: "Deploy to ${config.ENVIRONMENT} ?",
+                ok: "Proceed"
+            )
+        }
+    }
 
-    echo "${config.ACTION_MESSAGE}"
-}
-```
+    stage('Playbook Execution') {
 
-}
+        sh """
+        ansible-playbook \
+        ${config.PLAYBOOK_NAME} \
+        -i ${config.INVENTORY_FILE}
+        """
+    }
+
+    stage('Notification') {
+
+        echo "${config.ACTION_MESSAGE}"
+    }
 }
