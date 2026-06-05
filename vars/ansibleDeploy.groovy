@@ -4,10 +4,14 @@ def call(Map config) {
 
         deleteDir()
 
-        git config.REPO_URL
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: '*/main']],
+            userRemoteConfigs: [[url: config.REPO_URL]]
+        ])
     }
 
-    if (config.KEEP_APPROVAL_STAGE) {
+    if(config.KEEP_APPROVAL_STAGE) {
 
         stage('User Approval') {
 
@@ -23,17 +27,9 @@ def call(Map config) {
         sh """
         export PATH=/opt/homebrew/bin:\$PATH
 
-        echo "Current Workspace:"
         pwd
 
-        echo "Workspace Files:"
-        ls -la
-
-        echo "Searching Playbook:"
-        find . -name deploy.yml
-
-        echo "Searching Inventory:"
-        find . -name prod
+        ls -R
 
         ansible-playbook \
         playbooks/deploy.yml \
@@ -46,3 +42,4 @@ def call(Map config) {
         echo "${config.ACTION_MESSAGE}"
     }
 }
+
