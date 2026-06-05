@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+
+    - name: Print deployment message
+      debug:
+        msg: "Deployment Successful from Shared Library"
+
+    - name: Create deployment log
+      copy:
+        content: "Deployment executed successfully"
+        dest: /tmp/deployment.log
