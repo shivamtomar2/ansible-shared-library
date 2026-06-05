@@ -19,6 +19,8 @@ def call(Map config) {
     stage('Playbook Execution') {
 
         sh """
+        export PATH=/opt/homebrew/bin:\$PATH
+
         ansible-playbook \
         ${config.PLAYBOOK_NAME} \
         -i ${config.INVENTORY_FILE}
