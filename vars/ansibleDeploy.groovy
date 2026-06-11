@@ -2,22 +2,16 @@ def call(Map config) {
 
     stage('Clone') {
 
-        deleteDir()
-
-        checkout([
-            $class: 'GitSCM',
-            branches: [[name: '*/main']],
-            userRemoteConfigs: [[url: config.REPO_URL]]
-        ])
+        echo "Repository already checked out by Jenkins"
     }
 
-    if(config.KEEP_APPROVAL_STAGE) {
+    if (config.KEEP_APPROVAL_STAGE) {
 
         stage('User Approval') {
 
             input(
-                message: "Deploy to ${config.ENVIRONMENT} ?",
-                ok: "Proceed"
+                message: "Approve Kafka Deployment?",
+                ok: "Deploy"
             )
         }
     }
@@ -25,21 +19,19 @@ def call(Map config) {
     stage('Playbook Execution') {
 
         sh """
-        export PATH=/opt/homebrew/bin:\$PATH
-
-        pwd
-
-        ls -R
-
         ansible-playbook \
-        playbooks/deploy.yml \
-        -i inventory/prod
+        ${config.CODE_BASE_PATH}/${config.PLAYBOOK_NAME} \
+        -i inventory/hosts.ini
         """
     }
 
     stage('Notification') {
 
-        echo "${config.ACTION_MESSAGE}"
+        slackSend(
+            channel: "#${config.SLACK_CHANNEL_NAME}",
+            message: "${config.ACTION_MESSAGE}"
+        )
+
+        echo "Notification Sent"
     }
 }
-
