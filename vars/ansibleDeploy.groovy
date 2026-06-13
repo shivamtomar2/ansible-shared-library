@@ -1,4 +1,6 @@
-def call(Map config) {
+def call() {
+
+    def config = evaluate(readFile('deployment-config.groovy'))
 
     stage('Clone') {
 
@@ -10,8 +12,8 @@ def call(Map config) {
         stage('User Approval') {
 
             input(
-                message: "Approve Kafka Deployment?",
-                ok: "Deploy"
+                message: "Deploy to ${config.ENVIRONMENT} ?",
+                ok: "Proceed"
             )
         }
     }
@@ -19,19 +21,30 @@ def call(Map config) {
     stage('Playbook Execution') {
 
         sh """
+        export ENVIRONMENT=${config.ENVIRONMENT}
+
+        export PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
         ansible-playbook \
         ${config.CODE_BASE_PATH}/${config.PLAYBOOK_NAME} \
-        -i inventory/hosts.ini
+        -i inventory/prod
         """
     }
 
     stage('Notification') {
 
-        slackSend(
-            channel: "#${config.SLACK_CHANNEL_NAME}",
-            message: "${config.ACTION_MESSAGE}"
-        )
+        try {
 
-        echo "Notification Sent"
+            slackSend(
+                channel: "#${config.SLACK_CHANNEL_NAME}",
+                message: "${config.ACTION_MESSAGE}"
+            )
+
+        } catch(Exception ex) {
+
+            echo "Slack notification skipped"
+        }
+
+        echo "Deployment Completed"
     }
 }
