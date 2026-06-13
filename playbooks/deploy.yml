@@ -1,15 +1,39 @@
 ---
-- hosts: localhost
+- name: Kafka Deployment Validation
+  hosts: localhost
   connection: local
-  gather_facts: false
+
+  vars:
+    kafka_version: "3.8.0"
+    environment: "{{ lookup('env', 'ENVIRONMENT') | default('prod', true) }}"
 
   tasks:
 
-    - name: Print deployment message
+    - name: Display deployment information
       debug:
-        msg: "Deployment Successful from Shared Library"
+        msg:
+          - "Environment: {{ environment }}"
+          - "Kafka Version: {{ kafka_version }}"
+
+    - name: Create deployment directory
+      file:
+        path: /tmp/kafka-deployment
+        state: directory
 
     - name: Create deployment log
       copy:
-        content: "Deployment executed successfully"
-        dest: /tmp/deployment.log
+        dest: /tmp/kafka-deployment/deployment.log
+        content: |
+          Kafka Deployment Executed
+          Environment={{ environment }}
+          Version={{ kafka_version }}
+
+    - name: Verify deployment log
+      stat:
+        path: /tmp/kafka-deployment/deployment.log
+      register: deployment_file
+
+    - name: Show verification result
+      debug:
+        msg: "Kafka deployment validation successful"
+      when: deployment_file.stat.exists
